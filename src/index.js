@@ -1,3 +1,4 @@
+import http from "node:http";
 import { Store } from "./store.js";
 import { Watcher } from "./watcher.js";
 import { TelegramService } from "./telegram.js";
@@ -16,6 +17,24 @@ watcher = new Watcher(store, (deploy) =>
 );
 
 watcher.start();
+
+// Hosts like Render require web services to bind a port. Serves as a
+// health-check endpoint; not started locally unless PORT is set.
+if (process.env.PORT) {
+  http
+    .createServer((req, res) => {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          ok: true,
+          wallets: store.listWallets().length,
+          lastPollAt: watcher.lastTickAt,
+          errors: watcher.errors,
+        })
+      );
+    })
+    .listen(process.env.PORT, () => console.log(`[health] listening on port ${process.env.PORT}`));
+}
 
 console.log(`[bot] running — tracking ${store.listWallets().length} wallet(s)`);
 

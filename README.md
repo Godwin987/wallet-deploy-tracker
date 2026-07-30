@@ -61,6 +61,15 @@ npm run test:detector   # runs the detector on a real recent pump.fun launch
 npm run test:store      # wallet add/remove/persistence
 ```
 
+## Deploying on Render
+
+The bot binds an HTTP health-check server when the `PORT` env var is set (Render sets it automatically), so it passes Render's port scan when deployed as a **Web Service**.
+
+- Set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, and `HELIUS_RPC_URL` in the Render dashboard under Environment (there is no `.env` in the repo).
+- **Free tier spins down after ~15 min without inbound traffic — a spun-down bot misses deploys.** Keep it awake by pointing a free uptime pinger (e.g. UptimeRobot) at your service URL every 5 minutes, or upgrade / use a Background Worker.
+- Render's free filesystem is ephemeral: wallets added with `/add` are lost on every redeploy or restart. Attach a persistent disk mounted at `/data` (and point `dataDir` there) if you need them to survive.
+- Only run one instance per bot token — stop any local copy, or Telegram returns `409 Conflict`.
+
 ## Notes
 
 - On the first poll of a newly added wallet the bot records the wallet's latest transaction and only alerts on activity after that point — no spam from history.
