@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm ls *)",
+      "Bash(npm run *)",
+      "Bash(node -e ' *)",
+      "Bash(timeout 25 node src/index.js)",
+      "Bash(echo \"--- exit: $?\")",
+      "Bash(node src/index.js)",
+      "Bash(pkill -f \"node src/index.js\")"
+    ]
+  }
+}

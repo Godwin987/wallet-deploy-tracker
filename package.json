@@ -1,0 +1,21 @@
+{
+  "name": "solana-deploy-tracker-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot that alerts when tracked Solana wallets deploy a new token",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test:rpc": "node scripts/test-rpc.js",
+    "test:telegram": "node scripts/test-telegram.js",
+    "test:detector": "node scripts/test-detector.js",
+    "test:store": "node scripts/test-store.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "node-telegram-bot-api": "^0.66.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

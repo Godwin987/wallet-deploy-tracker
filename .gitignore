@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Secrets — bot token, chat id, Helius API key
+.env
+
+# Runtime data — tracked wallets & poll cursors (machine-specific, recreated automatically)
+data/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
