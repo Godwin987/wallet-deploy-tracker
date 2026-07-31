@@ -9,6 +9,7 @@
     "test:rpc": "node scripts/test-rpc.js",
     "test:telegram": "node scripts/test-telegram.js",
     "test:detector": "node scripts/test-detector.js",
+    "test:evm": "node scripts/test-evm.js",
     "test:store": "node scripts/test-store.js"
   },
   "dependencies": {

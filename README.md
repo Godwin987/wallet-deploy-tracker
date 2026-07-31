@@ -1,10 +1,20 @@
-# Solana Deploy Tracker Bot
+# Deploy Tracker Bot (Solana + Robinhood Chain)
 
-Telegram bot that watches specific Solana wallets and alerts you the moment one of them deploys a new coin — pump.fun, letsbonk (Raydium LaunchLab), Moonshot, or a direct SPL token mint.
+Telegram bot that watches specific wallets and alerts you the moment one of them deploys a new coin:
+
+- **Solana** — pump.fun, letsbonk (Raydium LaunchLab), Moonshot, or a direct SPL token mint (via Helius RPC)
+- **Robinhood Chain** (Ethereum L2, chain id 4663) — direct ERC-20 contract deploys and factory/launchpad deploys (via the public Robinhood RPC + Blockscout API, no key needed)
+
+The chain is auto-detected from the address format when you `/add` a wallet — base58 → Solana, `0x…` → Robinhood Chain.
 
 ## How it works
 
-Every 15 seconds the bot polls Helius RPC for new transactions from each tracked wallet. Each new transaction is parsed and flagged as a deploy if it initializes a new token mint (`initializeMint` / `initializeMint2`, including via launchpad CPIs) with the tracked wallet as a signer. Detected deploys trigger a Telegram alert with the token name, platform, mint address, and links to Solscan, Dexscreener, and pump.fun.
+Every 15 seconds each chain's watcher polls for new transactions from its tracked wallets.
+
+- **Solana:** a transaction is a deploy if it initializes a new token mint (`initializeMint` / `initializeMint2`, including via launchpad CPIs) with the tracked wallet as a signer.
+- **Robinhood Chain:** a transaction is a deploy if it creates a contract — directly (`to == null`) or through a factory (internal `create`/`create2`) — and the created contract answers ERC-20 `name()`/`symbol()` calls, filtering out non-token contracts.
+
+Detected deploys trigger a Telegram alert with the token name, platform/chain, contract address, and explorer links.
 
 ## Setup
 
@@ -34,17 +44,21 @@ Example: `/add 7HrbKX8Dygk8wmBYnSAKhf6sd4R5TRGQtMmuGmTdc2g cooked dev`
 
 ```
 ├── src/
-│   ├── index.js      # entry point — wires everything together
-│   ├── config.js     # env loading & validation
-│   ├── rpc.js        # Helius JSON-RPC client (+ token metadata via DAS)
-│   ├── detector.js   # decides if a transaction is a token deploy
-│   ├── watcher.js    # polling loop over tracked wallets
-│   ├── store.js      # wallet list + poll cursors persisted to disk
-│   └── telegram.js   # bot commands & alert formatting
-├── scripts/          # connectivity / detection / persistence tests
+│   ├── index.js         # entry point — wires everything together
+│   ├── config.js        # env loading & validation
+│   ├── rpc.js           # Helius JSON-RPC client (+ token metadata via DAS)
+│   ├── detector.js      # Solana: decides if a transaction is a token deploy
+│   ├── watcher.js       # Solana: polling loop over tracked wallets
+│   ├── evm-rpc.js       # Robinhood Chain: RPC + Blockscout API + ERC-20 reads
+│   ├── evm-detector.js  # Robinhood Chain: contract-creation → token detection
+│   ├── evm-watcher.js   # Robinhood Chain: polling loop
+│   ├── store.js         # chain-aware wallet list + poll cursors on disk
+│   └── telegram.js      # bot commands & per-chain alert formatting
+├── scripts/             # connectivity / detection / persistence tests
 │   ├── test-rpc.js
 │   ├── test-telegram.js
 │   ├── test-detector.js
+│   ├── test-evm.js
 │   └── test-store.js
 ├── data/
 │   ├── wallets.json  # tracked wallets (persisted)
@@ -58,7 +72,8 @@ Example: `/add 7HrbKX8Dygk8wmBYnSAKhf6sd4R5TRGQtMmuGmTdc2g cooked dev`
 npm run test:rpc        # Helius connectivity
 npm run test:telegram   # bot token + chat id (sends a test message)
 npm run test:detector   # runs the detector on a real recent pump.fun launch
-npm run test:store      # wallet add/remove/persistence
+npm run test:evm        # Robinhood Chain RPC, detection on a real factory deploy, chain detection
+npm run test:store      # wallet add/remove/persistence (both chains)
 ```
 
 ## Deploying on Render

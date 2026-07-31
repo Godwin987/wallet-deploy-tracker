@@ -1,22 +1,27 @@
 import http from "node:http";
 import { Store } from "./store.js";
 import { Watcher } from "./watcher.js";
+import { EvmWatcher } from "./evm-watcher.js";
 import { TelegramService } from "./telegram.js";
 
 const store = new Store();
 
 let watcher; // assigned below; TelegramService reads status lazily
+let evmWatcher;
 const telegram = new TelegramService(store, () => ({
   startedAt: watcher?.startedAt,
-  lastTickAt: watcher?.lastTickAt,
-  errors: watcher?.errors ?? 0,
+  solana: { lastTickAt: watcher?.lastTickAt, errors: watcher?.errors ?? 0 },
+  evm: { lastTickAt: evmWatcher?.lastTickAt, errors: evmWatcher?.errors ?? 0 },
 }));
 
-watcher = new Watcher(store, (deploy) =>
-  telegram.sendDeployAlert(deploy).catch((err) => console.error("[telegram] alert failed:", err.message))
-);
+const onDeploy = (deploy) =>
+  telegram.sendDeployAlert(deploy).catch((err) => console.error("[telegram] alert failed:", err.message));
+
+watcher = new Watcher(store, onDeploy);
+evmWatcher = new EvmWatcher(store, onDeploy);
 
 watcher.start();
+evmWatcher.start();
 
 // Hosts like Render require web services to bind a port. Serves as a
 // health-check endpoint; not started locally unless PORT is set.
@@ -28,8 +33,9 @@ if (process.env.PORT) {
         JSON.stringify({
           ok: true,
           wallets: store.listWallets().length,
-          lastPollAt: watcher.lastTickAt,
-          errors: watcher.errors,
+          lastSolanaPollAt: watcher.lastTickAt,
+          lastRobinhoodPollAt: evmWatcher.lastTickAt,
+          errors: watcher.errors + evmWatcher.errors,
         })
       );
     })
@@ -41,5 +47,6 @@ console.log(`[bot] running — tracking ${store.listWallets().length} wallet(s)`
 process.on("SIGINT", () => {
   console.log("\n[bot] shutting down");
   watcher.stop();
+  evmWatcher.stop();
   process.exit(0);
 });

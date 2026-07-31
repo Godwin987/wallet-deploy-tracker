@@ -49,7 +49,7 @@ export class Watcher {
   }
 
   async tick() {
-    for (const wallet of this.store.listWallets()) {
+    for (const wallet of this.store.listWallets("solana")) {
       try {
         await this.checkWallet(wallet);
       } catch (err) {
