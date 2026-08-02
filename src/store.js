@@ -44,6 +44,16 @@ export class Store {
     this.wallets = readJson(WALLETS_FILE, { wallets: [] }).wallets;
     for (const w of this.wallets) w.chain ||= "solana"; // pre-EVM entries
     this.state = readJson(STATE_FILE, {}); // { [address]: { lastSignature } }
+
+    for (const seed of config.seedWallets) {
+      if (this.getWallet(seed.address)) continue;
+      const result = this.addWallet(seed.address, seed.label);
+      console.log(
+        result.ok
+          ? `[store] seeded ${seed.address} from TRACKED_WALLETS`
+          : `[store] could not seed ${seed.address}: ${result.error}`
+      );
+    }
   }
 
   listWallets(chain) {

@@ -46,7 +46,15 @@
       "Bash(dig +short mainnet.helius-rpc.com)",
       "Bash(node \"/private/tmp/claude-501/-Users-godijef-s-tier-wallet-launches/8896bf89-60e8-42ef-b7db-a82f06f4df54/scratchpad/e2e-evm.js\")",
       "Bash(node --check src/index.js)",
-      "Bash(node --check src/watcher.js)"
+      "Bash(node --check src/watcher.js)",
+      "Bash(curl -s -m 15 \"https://robinhoodchain.blockscout.com/api/v2/search?q=HIM\")",
+      "Bash(curl -s -m 15 \"https://robinhoodchain.blockscout.com/api/v2/addresses/0x84f8e5a324466deb7447048c014cf0245ce04afa/transactions?filter=from\")",
+      "Bash(node \"/private/tmp/claude-501/-Users-godijef-s-tier-wallet-launches/8896bf89-60e8-42ef-b7db-a82f06f4df54/scratchpad/find-deploy.js\")",
+      "Bash(node \"/private/tmp/claude-501/-Users-godijef-s-tier-wallet-launches/8896bf89-60e8-42ef-b7db-a82f06f4df54/scratchpad/find-deploy2.js\")",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(curl -s -m 20 -w \"\\\\nHTTP:%{http_code}\\\\n\" -X POST https://rpc.mainnet.chain.robinhood.com -H \"Content-Type: application/json\" -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_chainId\",\"params\":[]}')",
+      "Bash(curl -s -m 20 -w \"\\\\nHTTP:%{http_code}\\\\n\" -X POST https://rpc.mainnet.chain.robinhood.com -H \"Content-Type: application/json\" -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_call\",\"params\":[{\"to\":\"0x1755C2910c126eE1b0CF1E08a307Dc9E787285a0\",\"data\":\"0x06fdde03\"},\"latest\"]}')",
+      "Bash(node \"/private/tmp/claude-501/-Users-godijef-s-tier-wallet-launches/8896bf89-60e8-42ef-b7db-a82f06f4df54/scratchpad/density.js\")"
     ]
   }
 }

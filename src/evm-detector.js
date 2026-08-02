@@ -6,8 +6,11 @@
 //  2. Factory deploy — the wallet calls a launchpad/factory contract that
 //     creates the token via an internal create/create2.
 //
-// Every created contract is then probed with ERC-20 name()/symbol() calls —
-// only contracts that answer are treated as token deploys.
+// Every created contract is then probed with ERC-20 metadata calls — only
+// contracts that answer are treated as token deploys.
+//
+// Any RPC/API failure throws (UndeterminedError) rather than returning
+// "not a deploy", so the watcher can retry instead of skipping the launch.
 
 import { getInternalTransactions, getErc20Metadata } from "./evm-rpc.js";
 
@@ -32,9 +35,11 @@ export async function detectEvmDeploy(tx) {
   if (direct) created.push(direct);
   const isCreation = txTypes(tx).includes("contract_creation") || tx.to == null;
 
-  // Path 2: contract call that may create contracts internally
+  // Path 2: contract call that may create contracts internally.
+  // Failures here propagate on purpose — swallowing them would report
+  // "no deploy" for a launch we simply failed to read.
   if (!direct && (txTypes(tx).includes("contract_call") || isCreation)) {
-    const internals = await getInternalTransactions(tx.hash).catch(() => []);
+    const internals = await getInternalTransactions(tx.hash);
     for (const it of internals) {
       const address = it.created_contract?.hash;
       if (address && CREATE_TYPES.has(it.type) && !created.includes(address)) {
