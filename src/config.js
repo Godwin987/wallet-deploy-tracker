@@ -23,6 +23,10 @@ export const config = {
   pollIntervalMs: Number(process.env.POLL_INTERVAL_MS) || 15000,
   dataDir: process.env.DATA_DIR || path.resolve(__dirname, "..", "data"),
   seedWallets: parseSeedWallets(process.env.TRACKED_WALLETS),
+  // Trading/scanner bots linked from each alert. Overridable so a renamed
+  // (or better) bot doesn't need a code change.
+  rickBotUsername: process.env.RICK_BOT_USERNAME || "RickBurpBot",
+  basedBotUsername: process.env.BASED_BOT_USERNAME || "based_eth_bot",
 };
 
 // Hosts with an ephemeral filesystem (Render's free tier) wipe data/ on every

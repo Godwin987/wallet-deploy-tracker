@@ -14,7 +14,25 @@ Every 15 seconds each chain's watcher polls for new transactions from its tracke
 - **Solana:** a transaction is a deploy if it initializes a new token mint (`initializeMint` / `initializeMint2`, including via launchpad CPIs) with the tracked wallet as a signer.
 - **Robinhood Chain:** a transaction is a deploy if it creates a contract — directly (`to == null`) or through a factory (internal `create`/`create2`) — and the created contract answers ERC-20 `name()`/`symbol()` calls, filtering out non-token contracts.
 
-Detected deploys trigger a Telegram alert with the token name, platform/chain, contract address, and explorer links.
+Detected deploys trigger a Telegram alert with the token name, platform/chain, contract address, and one-tap buttons.
+
+## Alert buttons
+
+Each alert carries an inline keyboard so a launch never has to be copy-pasted into another bot:
+
+| Button | Goes to |
+| --- | --- |
+| ⚡ Trade on Based | `t.me/based_eth_bot?start=<contract>` |
+| 🔍 Scan with Rick | `t.me/RickBurpBot?start=<contract>` — Rick's documented token scan |
+| 📈 Chart | Dexscreener (`solana` / `robinhood`) |
+| 🔎 Solscan / Explorer | Token page on the chain's explorer |
+| 👤 Dev history | `t.me/RickBurpBot?start=dev-<wallet>` — everything else that deployer has launched |
+| 🧾 Transaction | The deploy transaction |
+| 🚀 Pump.fun | Only on pump.fun launches |
+
+The contract is still printed as tap-to-copy text for anything not covered by a button.
+
+Override the bots with `RICK_BOT_USERNAME` / `BASED_BOT_USERNAME` if you switch tools — no code change needed. Addresses are validated against Telegram's start-payload rules (64 chars, `A-Za-z0-9_-`); anything malformed drops the button rather than rendering a dead link.
 
 ## Setup
 

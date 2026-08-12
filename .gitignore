@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Local tooling config — machine-specific, and its allowlist embeds API keys
+.claude/
+
 # Secrets — bot token, chat id, Helius API key
 .env
 

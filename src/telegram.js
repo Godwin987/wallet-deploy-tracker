@@ -2,6 +2,7 @@ import TelegramBot from "node-telegram-bot-api";
 import { config } from "./config.js";
 import { getAssetMetadata } from "./rpc.js";
 import { CHAIN_NAMES } from "./store.js";
+import { buildAlertKeyboard } from "./links.js";
 
 function escapeHtml(text) {
   return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -38,10 +39,11 @@ export class TelegramService {
     return String(msg.chat.id) === String(config.telegramChatId);
   }
 
-  send(html) {
+  send(html, extra = {}) {
     return this.bot.sendMessage(config.telegramChatId, html, {
       parse_mode: "HTML",
       disable_web_page_preview: true,
+      ...extra,
     });
   }
 
@@ -60,21 +62,21 @@ export class TelegramService {
         : "";
     const time = timestamp ? new Date(timestamp).toUTCString() : "just now";
 
-    const explorer = "https://robinhoodchain.blockscout.com";
-    const links = [
-      `<a href="${explorer}/tx/${txHash}">Tx</a>`,
-      `<a href="${explorer}/token/${token.address}">Explorer</a>`,
-    ];
-
     const message =
       `🚀 <b>New token deploy detected!</b>\n\n` +
       `👛 <b>Wallet:</b> ${walletName}\n` +
       `⛓ <b>Chain:</b> Robinhood Chain${tokenLine}\n` +
       `📍 <b>Contract:</b> <code>${token.address}</code>\n` +
-      `🕒 <b>Time:</b> ${time}\n\n` +
-      links.join(" | ");
+      `🕒 <b>Time:</b> ${time}`;
 
-    await this.send(message);
+    await this.send(message, {
+      reply_markup: buildAlertKeyboard({
+        chain: "robinhood",
+        contract: token.address,
+        walletAddress: wallet.address,
+        txHash,
+      }),
+    });
   }
 
   async sendSolanaDeployAlert({ wallet, signature, blockTime, mints, platform }) {
@@ -88,22 +90,22 @@ export class TelegramService {
       : "";
     const time = blockTime ? new Date(blockTime * 1000).toUTCString() : "just now";
 
-    const links = [
-      `<a href="https://solscan.io/tx/${signature}">Tx</a>`,
-      `<a href="https://solscan.io/token/${mint}">Solscan</a>`,
-      `<a href="https://dexscreener.com/solana/${mint}">Dexscreener</a>`,
-    ];
-    if (platform === "pump.fun") links.push(`<a href="https://pump.fun/coin/${mint}">Pump.fun</a>`);
-
     const message =
       `🚀 <b>New token deploy detected!</b>\n\n` +
       `👛 <b>Wallet:</b> ${walletName}\n` +
       `🏗 <b>Platform:</b> ${escapeHtml(platform)}${tokenLine}\n` +
       `📍 <b>Mint:</b> <code>${mint}</code>\n` +
-      `🕒 <b>Time:</b> ${time}\n\n` +
-      links.join(" | ");
+      `🕒 <b>Time:</b> ${time}`;
 
-    await this.send(message);
+    await this.send(message, {
+      reply_markup: buildAlertKeyboard({
+        chain: "solana",
+        contract: mint,
+        walletAddress: wallet.address,
+        txHash: signature,
+        platform,
+      }),
+    });
   }
 
   registerCommands() {

@@ -60,14 +60,23 @@ async function tryCall(to, selector) {
   }
 }
 
-export async function getChainId() {
-  const res = await fetch(config.robinhoodRpcUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: ++requestId, method: "eth_chainId", params: [] }),
-  });
-  const json = await res.json();
-  return json.result;
+export async function getChainId({ retries = 3 } = {}) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const res = await fetch(config.robinhoodRpcUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: ++requestId, method: "eth_chainId", params: [] }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (json.error) throw new Error(json.error.message);
+      return json.result;
+    } catch (err) {
+      if (attempt >= retries) throw new UndeterminedError(`eth_chainId: ${err.message}`);
+      await sleep(400 * 2 ** attempt);
+    }
+  }
 }
 
 async function blockscout(path, { retries = 3 } = {}) {
